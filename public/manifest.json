@@ -4,10 +4,10 @@
   "manifest_version": 1,
   "action": {
     "title": "OwlDnD",
-    "icon": "icon.png",
-    "popover": "index.html",
+    "icon": "/OwlDnD/icon.png",
+    "popover": "/OwlDnD/index.html",
     "height": 600,
     "width": 400
   },
-  "background_url": "background.html"
+  "background_url": "/OwlDnD/background.html"
 }

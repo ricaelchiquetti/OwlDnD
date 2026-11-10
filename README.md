@@ -16,7 +16,7 @@ O deploy é automático (GitHub Actions) a cada push na `main`.
 
 ```bash
 npm install
-npm run dev      # servidor local (a extensão é carregada pelo manifest em /manifest.json)
+npm run dev      # servidor local; manifest em http://localhost:5173/OwlDnD/manifest.json
 npm test         # testes (vitest)
 npm run build
 ```
