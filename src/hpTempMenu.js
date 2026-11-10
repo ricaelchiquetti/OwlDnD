@@ -1,4 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
+import { assetUrl } from "./assetUrl.js";
 import { SHEET_TOKEN_KEY } from "./journal.js";
 
 const TEMP_MENU_ID = "owldnd/hp-temp";
@@ -13,7 +14,7 @@ export async function setTempMenu(visible) {
   if (!visible) return OBR.contextMenu.remove(TEMP_MENU_ID);
   return OBR.contextMenu.create({
     id: TEMP_MENU_ID,
-    icons: [{ icon: "/sheet-icon.svg", label: "HP temp", filter: { max: 1, every: [{ key: ["metadata", SHEET_TOKEN_KEY], value: undefined, operator: "!=" }] } }],
-    embed: { url: "/hp.html?kind=temp", height: TEMP_EMBED_HEIGHT },
+    icons: [{ icon: assetUrl("sheet-icon.svg"), label: "HP temp", filter: { max: 1, every: [{ key: ["metadata", SHEET_TOKEN_KEY], value: undefined, operator: "!=" }] } }],
+    embed: { url: assetUrl("hp.html?kind=temp"), height: TEMP_EMBED_HEIGHT },
   });
 }

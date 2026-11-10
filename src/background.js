@@ -1,4 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
+import { assetUrl } from "./assetUrl.js";
 import { SHEET_TOKEN_KEY } from "./journal.js";
 import { INITIATIVE_KEY } from "./initiative.js";
 import { openItem, openLink, showTracker, openTrackerForEveryone, OPEN_TRACKER_CHANNEL } from "./itemModal.js";
@@ -6,8 +7,8 @@ import { setInitiative, removeInitiative } from "./initiativeStore.js";
 import { watchHpOverlay } from "./hpOverlay.js";
 import { legacyChatKeys } from "./chat.js";
 
-const ICON = "/sheet-icon.svg";
-const INITIATIVE_ICON = "/initiative-icon.svg";
+const ICON = assetUrl("sheet-icon.svg");
+const INITIATIVE_ICON = assetUrl("initiative-icon.svg");
 // Added from the context menu with no roll: the value starts at 0 and the GM edits it. Only the sheet click rolls.
 const UNROLLED_INITIATIVE = 0;
 const HP_EMBED_HEIGHT = 48;
@@ -31,7 +32,7 @@ OBR.onReady(() => {
   OBR.contextMenu.create({
     id: "owldnd/hp",
     icons: [{ icon: ICON, label: "HP", filter: { max: 1, every: [isLinked] } }],
-    embed: { url: "/hp.html", height: HP_EMBED_HEIGHT },
+    embed: { url: assetUrl("hp.html"), height: HP_EMBED_HEIGHT },
   });
   OBR.contextMenu.create({
     id: "owldnd/add-initiative",

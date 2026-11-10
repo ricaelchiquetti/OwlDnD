@@ -2,6 +2,16 @@
 
 Extensão do Owlbear Rodeo para D&D 5e: Diário (personagens e notas), ficha de personagem, chat com dados, iniciativa e barra de vida sobre o token.
 
+## Instalar
+
+No Owlbear Rodeo: Perfil → Extensões → Adicionar extensão, e cole:
+
+```
+https://ricaelchiquetti.github.io/OwlDnD/manifest.json
+```
+
+O deploy é automático (GitHub Actions) a cada push na `main`.
+
 ## Rodar
 
 ```bash

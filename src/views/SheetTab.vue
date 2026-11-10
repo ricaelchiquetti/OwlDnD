@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
 import { t } from "../i18n.js";
+import { assetUrl } from "../assetUrl.js";
 import {
   Ability, ASK_ABILITY, AcMode, EquipmentKind, ArmorType, EffectMode, EffectTarget, ALL_SAVES, DEATH_SAVE, deathSaveBonus, abilityScore, abilityScoreModified, newItemEffect, armorClass, characterLevel, hitDiceTotal, hitDiceTypes, ToolProficiency, SKILLS, ProficiencyType, Encumbrance, abilityModifier, proficiencyBonus, savingThrow, skillBonus, passivePerception, initiative,
   toolBonus, toolBonusText, modifierFor, hitDiceExpression, totalWeight, encumbrance, featureIndexes, signed, newEquipment, newTool, newProficiency, newResource, newFeature,
@@ -61,7 +62,7 @@ const visibleFeatures = computed(() => featureIndexes(props.sheet.features, quer
   <fieldset :disabled="!editable" class="sheet paper">
     <header class="sheet-header">
       <div class="banner">
-        <img src="/img/CharScroll.svg" alt="" />
+        <img :src="assetUrl('img/CharScroll.svg')" alt="" />
         <h2 :title="name">{{ name }}</h2>
       </div>
       <div class="info-box">
@@ -99,7 +100,7 @@ const visibleFeatures = computed(() => featureIndexes(props.sheet.features, quer
       <div class="col skills">
         <div class="bar bar-inspiration">
           <button type="button" class="bar-check" :aria-label="t('sheet.inspiration')" :aria-pressed="sheet.inspiration" @click="set('inspiration', !sheet.inspiration)">
-            <img v-if="sheet.inspiration" src="/img/insperation.gif" alt="" />
+            <img v-if="sheet.inspiration" :src="assetUrl('img/insperation.gif')" alt="" />
           </button>
           <span class="bar-label">{{ t("sheet.inspiration") }}</span>
         </div>
@@ -236,7 +237,7 @@ const visibleFeatures = computed(() => featureIndexes(props.sheet.features, quer
         <SheetPanel :title="t('sheet.currency')">
           <div class="coins">
             <label v-for="c in currencies" :key="c" class="coin">
-              <span class="coin-label"><img :src="`/img/${COIN_ICONS[c]}.png`" alt="" />{{ t(c) }}</span>
+              <span class="coin-label"><img :src="assetUrl(`img/${COIN_ICONS[c]}.png`)" alt="" />{{ t(c) }}</span>
               <input type="number" min="0" :value="sheet.currency[c]" @change="set(`currency.${c}`, toNumber($event))" />
             </label>
           </div>
@@ -246,7 +247,7 @@ const visibleFeatures = computed(() => featureIndexes(props.sheet.features, quer
           <div class="equipment" style="--cols: auto 40px 1fr 54px 22px">
             <div class="equip-head">
               <span /><span :title="t('sheet.qty')">✖</span><span>{{ t("sheet.equipmentName") }}</span>
-              <img src="/img/weight_lbs.png" :alt="t('sheet.weight')" :title="t('sheet.weight')" /><span />
+              <img :src="assetUrl('img/weight_lbs.png')" :alt="t('sheet.weight')" :title="t('sheet.weight')" /><span />
             </div>
             <EditableList :items="sheet.equipment" :editable="editable" @add="append('equipment', newEquipment())" @remove="removeEquipment">
               <template #default="{ item, index }">

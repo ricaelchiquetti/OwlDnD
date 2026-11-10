@@ -1,4 +1,5 @@
 import OBR from "@owlbear-rodeo/sdk";
+import { assetUrl } from "./assetUrl.js";
 
 const DEFAULT_BOX = { left: 60, top: 60, width: 960, height: 700 };
 const OTHER_SLOT = { a: "b", b: "a" };
@@ -13,7 +14,7 @@ export function showSheet(itemId, slot, box, minimized = false, tokenId = null) 
   if (tokenId) query.set("token", tokenId);
   return OBR.popover.open({
     id: popoverId(itemId, slot),
-    url: `/modal.html?${query}`,
+    url: assetUrl(`modal.html?${query}`),
     width: box.width,
     height,
     hidePaper: true,
@@ -44,7 +45,7 @@ const LINK_WIDTH = 360;
 const LINK_HEIGHT = 420;
 
 export const openLink = (tokenId) =>
-  OBR.modal.open({ id: LINK_MODAL_ID, url: `/link.html?token=${encodeURIComponent(tokenId)}`, width: LINK_WIDTH, height: LINK_HEIGHT });
+  OBR.modal.open({ id: LINK_MODAL_ID, url: assetUrl(`link.html?token=${encodeURIComponent(tokenId)}`), width: LINK_WIDTH, height: LINK_HEIGHT });
 
 export const TRACKER_ID = "owldnd/initiative-tracker";
 export const OPEN_TRACKER_CHANNEL = "owldnd/open-tracker";
@@ -58,7 +59,7 @@ export async function showTracker() {
   const viewportWidth = await OBR.viewport.getWidth();
   return OBR.popover.open({
     id: TRACKER_ID,
-    url: "/tracker.html",
+    url: assetUrl("tracker.html"),
     width: TRACKER_WIDTH,
     height: TRACKER_HEIGHT,
     anchorReference: "POSITION",
@@ -83,7 +84,7 @@ export async function showHpEdit(barItemId, sheetId, kind) {
   const top = await OBR.viewport.transformPoint({ x: bounds.center.x, y: bounds.min.y });
   return OBR.popover.open({
     id: HP_EDIT_ID,
-    url: `/hp-edit.html?sheet=${encodeURIComponent(sheetId)}&kind=${kind}`,
+    url: assetUrl(`hp-edit.html?sheet=${encodeURIComponent(sheetId)}&kind=${kind}`),
     width: HP_EDIT_WIDTH,
     height: HP_EDIT_HEIGHT,
     anchorReference: "POSITION",
