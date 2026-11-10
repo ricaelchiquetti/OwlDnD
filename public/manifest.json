@@ -2,7 +2,7 @@
   "name": "OwlDnD",
   "version": "1.0.0",
   "manifest_version": 1,
-  "description": "D&D 5e for Owlbear Rodeo: journal, character sheets, dice chat, initiative tracker and HP bars over tokens.",
+  "description": "All-in-one D&D 5e for Owlbear Rodeo: journal, character sheets, dice chat, initiative tracker and HP bars over tokens.",
   "author": "ricaelchiquetti",
   "homepage_url": "https://github.com/ricaelchiquetti/OwlDnD",
   "icon": "/OwlDnD/icon.png",
