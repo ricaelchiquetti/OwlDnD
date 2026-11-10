@@ -1,0 +1,183 @@
+/* Printed-sheet look: frames and bars come from public/img. The sheet is always "paper" (light) so the black line art stays readable in both app themes. */
+.sheet.paper { background: #fff; color: #231f20; color-scheme: light; padding: 14px; border-radius: 6px; font-size: 13px; }
+
+/* one text size for everything on the sheet; display numbers and captions override it below (this rule comes first so they win ties) */
+.sheet input, .sheet select, .sheet textarea, .sheet button { font-size: 13px; }
+:where(.sheet) h3 { font-size: 14px; }
+
+/* header: name banner on its own line, class details below */
+.sheet-header { display: grid; gap: 8px; }
+.banner { position: relative; height: 120px; overflow: hidden; }
+.banner img { position: absolute; top: 50%; left: 0; width: 100%; transform: translateY(-50%); }
+.banner h2 { position: absolute; left: 8%; top: 57%; width: 36%; margin: 0; padding-top: 4px; transform: translateY(-50%); font-size: 20px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.info-box { position: relative; padding: 4px 18px; border: 12px solid transparent; border-image: url(/img/CharBox.svg) 14% 4% / 12px 16px stretch; }
+.info-grid { display: grid; grid-template-columns: 2fr 1.3fr 1fr 1.3fr 1fr; gap: 10px; }
+.info-gear { position: absolute; top: -2px; right: 2px; }
+
+/* ability cards */
+.col.abilities { padding: 10px 8px; gap: 8px; background: url(/img/ability-back.svg) center / 100% 100% no-repeat; }
+.ability { position: relative; aspect-ratio: 53.25 / 62.43; background: url(/img/ability-CHA.svg) center / 100% 100% no-repeat; }
+.ability > span { position: absolute; top: 9%; left: 7%; right: 7%; text-align: center; font-size: 8px; letter-spacing: -0.2px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ability > strong, .ability > .ability-roll { position: absolute; top: 33%; left: 0; right: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-weight: 700; text-align: center; font-size: 26px; line-height: 1; }
+.ability > .ability-roll { cursor: pointer; }
+.ability > .ability-roll:hover { color: #58180d; }
+.ability > input { position: absolute; bottom: 8%; left: 27%; width: 46%; height: 16%; padding: 0; border: 0; background: transparent; text-align: center; font-size: 13px; }
+
+/* bars: value in the round cap on the left, caption on the right */
+.bar { position: relative; aspect-ratio: var(--ratio); background: var(--art) center / 100% 100% no-repeat; }
+.bar-inspiration { --art: url(/img/inspiration.svg); --ratio: 113.06 / 28.14; --cap: 27%; }
+.bar-proficiency { --art: url(/img/proficency-bonus.svg); --ratio: 113.65 / 34.58; --cap: 31%; }
+.bar-perception { --art: url(/img/perception.svg); --ratio: 179.21 / 27.09; --cap: 20%; }
+.bar-label { position: absolute; left: calc(var(--cap) + 3%); right: 7%; top: 50%; transform: translateY(-50%); font-size: 10px; font-weight: 700; text-transform: uppercase; line-height: 1.1; }
+.bar-value { position: absolute; left: 0; width: var(--cap); top: 50%; transform: translateY(-50%); text-align: center; font-size: 18px; }
+/* the button sits over the empty square drawn in the bar art; when on, the GIF fills it */
+.sheet .bar-check { position: absolute; left: 3%; top: 50%; height: 72%; aspect-ratio: 1; transform: translateY(-50%); padding: 0; border: 0; border-radius: 6px; background: transparent; cursor: pointer; overflow: hidden; }
+.sheet .bar-check:focus-visible { outline: 2px solid #7c5cff; }
+.bar-check img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* framed panels: 9-slice borders keep the corners crisp while the block stretches */
+.panel { margin: 0; border: 12px solid transparent; border-image-source: var(--frame); border-image-slice: var(--slice); border-image-repeat: stretch; }
+.frame-box { --frame: url(/img/5eBorder.svg); --slice: 5%; }
+.frame-saves { --frame: url(/img/saves.svg); --slice: 12%; }
+.frame-block { --frame: url(/img/proficiency-block.svg); --slice: 8%; }
+.frame-vital { --frame: url(/img/vital-box.svg); --slice: 24%; }
+.frame-vital-top { --frame: url(/img/vital-top.svg); --slice: 19% 7%; }
+.frame-vital-mid { --frame: url(/img/vital-mid.svg); --slice: 24% 7%; }
+.frame-vital-bottom { --frame: url(/img/vital-bottom.svg); --slice: 24% 7%; }
+.panel-body { position: relative; display: grid; gap: 4px; }
+.panel .caption { margin: 4px 0 0; text-align: center; font-size: 9px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* vitals */
+.vitals { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; align-items: center; }
+.shield { position: relative; width: 100%; aspect-ratio: 48 / 55.08; background: url(/img/AC.svg) center / 100% 100% no-repeat; }
+.shield-label { position: absolute; top: 62%; left: 0; right: 0; text-align: center; font-size: 10px; font-weight: 700; }
+.shield input { position: absolute; top: 24%; left: 20%; width: 60%; padding: 0; border: 0; background: transparent; text-align: center; font-size: 22px; font-weight: 700; }
+.sheet .big-number { display: block; width: 100%; border: 0; background: transparent; text-align: center; font-size: 24px; font-weight: 700; }
+
+/* coins and weight */
+.stat.weight { display: flex; text-align: center; justify-content: center; align-items: center; gap: 4px; }
+.stat.weight img { height: 20px; }
+
+/* centered numeric displays: no spin buttons, or the browser reserves room for them and the number drifts left */
+.ability > input, .shield input, .sheet .big-number, .sheet .big { appearance: textfield; -moz-appearance: textfield; }
+.ability > input::-webkit-inner-spin-button, .shield input::-webkit-inner-spin-button, .sheet .big-number::-webkit-inner-spin-button, .sheet .big::-webkit-inner-spin-button,
+.ability > input::-webkit-outer-spin-button, .shield input::-webkit-outer-spin-button, .sheet .big-number::-webkit-outer-spin-button, .sheet .big::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* hit dice: small total on top, big current value, die type inside the caption */
+.mini-total { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; font-size: 11px; opacity: 0.9; }
+.mini-total { margin: 0; }
+.mini-total .mini-value { padding: 2px 0; border-bottom: 1px solid #8884; text-align: center; font-weight: 700; }
+.sheet .mini-total input { border: 0; border-bottom: 1px solid #8884; background: transparent; text-align: center; }
+
+/* class features: printed-sheet look when locked (title in small caps, origin in italics, text visible); collapsible down to the title */
+.feature-card { padding: 2px 0 8px; border-bottom: 1px solid #8883; }
+.feature-card > summary { display: flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; }
+.feature-card > summary::-webkit-details-marker { display: none; }
+.feature-card > summary::before { content: "▾"; font-size: 11px; opacity: 0.6; }
+.feature-card:not([open]) > summary::before { content: "▸"; }
+.feature-name { flex: 1; margin: 0; font-family: "Mr Eaves SC", "Cinzel", Georgia, "Times New Roman", serif; font-variant: small-caps; font-size: 19px; line-height: 1.15; font-weight: 700; color: #58180d; }
+.feature-body { display: grid; gap: 4px; margin-top: 2px; }
+.feature-source { margin: 0; font-size: 12px; font-style: italic; color: #5b5b5b; }
+.feature-body .feature-text { margin: 2px 0 0; font-size: 13px; line-height: 1.4; }
+
+/* top / mid / bottom pieces butt together as one block (hit points, personality) */
+.stack { display: grid; gap: 0; }
+.stack > .panel:not(:last-child) { margin-bottom: -2px; }
+.sheet .hp-current { font-size: 34px; }
+
+/* resources use the vital box frame instead of a plain border */
+.resource-card.vital-frame { border: 8px solid transparent; border-image: url(/img/vital-box.svg) 24% stretch; padding: 0; gap: 0; }
+.sheet .resource-card .big { font-size: 20px; line-height: 1.1; }
+.sheet .resource-card .resource-name { font-size: 10px; }
+.sheet .resource-top input { width: 32px; font-size: 11px; }
+.resource-top { font-size: 9px; }
+.resource-top .gear { font-size: 11px; }
+
+/* coins: its own plain block, icon + label above a normal number field */
+.coins { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.coin { display: grid; gap: 2px; }
+.coin-label { display: flex; align-items: center; gap: 3px; font-size: 10px; font-weight: 700; }
+.coin-label img { height: 13px; }
+
+/* grey plate holding separate framed boxes (characteristics, vitals) */
+.plate { display: grid; gap: 6px; padding: 8px; background: #dcddde; border-radius: 10px; }
+.characteristics-title { margin: 0; text-align: center; font-family: "Mr Eaves SC", "Cinzel", Georgia, "Times New Roman", serif; font-variant: small-caps; font-size: 18px; color: #58180d; }
+.plate .panel { background: #fff; background-clip: padding-box; border-radius: 10px; }
+.trait-text { margin: 0; padding: 0 14px; min-height: 2.6em; text-align: center; font-size: 13px; line-height: 1.35; white-space: pre-wrap; }
+.vital-gear { position: absolute; top: -6px; right: -6px; }
+.characteristics textarea { text-align: center; }
+
+.expertise-mark { color: #58180d; font-size: 11px; }
+.sheet .info-box .inline + .inline { margin-top: 4px; }
+
+/* equipment: header with icons, grey rounded cells (equipped box, quantity, name, weight) */
+.equip-head { display: grid; grid-template-columns: var(--cols); gap: 4px; align-items: center; margin-bottom: 2px; text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.equip-head img { height: 14px; justify-self: center; }
+.sheet .equipment .equip-row input:not([type="checkbox"]) { padding: 4px; border: 0; border-radius: 4px; background: #ececec; text-align: center; font-weight: 700; appearance: textfield; -moz-appearance: textfield; }
+.sheet .equipment .equip-row > input:nth-child(3):not([type="checkbox"]) { text-align: left; padding-left: 8px; }
+.equipment .equip-row input::-webkit-inner-spin-button, .equipment .equip-row input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.sheet .equipment .equip-row input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1a73e8; }
+.equip-row { display: grid; grid-template-columns: var(--cols); gap: 4px; align-items: center; margin-bottom: 4px; }
+.equip-editor { display: grid; gap: 6px; margin: 0 0 8px; padding: 8px; border-top: 1px dashed #8886; }
+.equip-editor label { display: grid; gap: 2px; font-size: 11px; text-transform: uppercase; }
+.equip-note { margin: 0; font-size: 11px; font-style: italic; color: #5b5b5b; }
+.equipment .list-row { grid-template-columns: 1fr auto; }
+.hint-row { display: flex; align-items: center; gap: 8px; }
+.hint-row select { flex: 0 0 38%; }
+.equip-editor .hint { flex: 1; font-size: 10px; font-style: italic; line-height: 1.25; text-transform: none; color: #5b5b5b; }
+
+/* ability scores changed by an equipped Magic Item */
+.ability-mark { position: absolute; top: 30%; right: 12%; font-style: normal; font-size: 10px; color: #58180d; }
+.ability.modified > strong, .ability.modified > .ability-roll { color: #58180d; }
+
+/* Magic Item: attribute effect rows */
+.effects { display: grid; gap: 4px; }
+.effects-title { font-size: 11px; font-weight: 700; text-transform: uppercase; }
+.effect-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.effect-row select { flex: 1.3 1 64px; min-width: 0; }
+.effect-row select:first-child { flex: 1 1 84px; }
+.effect-row input { flex: 0 0 52px; }
+.death-bonus { margin: 2px 0 0; font-size: 10px; text-align: center; text-transform: uppercase; }
+.death-bonus strong { font-size: 13px; }
+.sheet .initiative-roll { cursor: pointer; border: 0; background: transparent; font-weight: 700; }
+.sheet .initiative-roll:hover { color: #58180d; }
+
+/* values you can click to roll */
+.sheet .roll-bonus { padding: 0; border: 0; background: transparent; color: inherit; font-weight: 700; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.sheet .roll-bonus:hover { color: #58180d; }
+.sheet .roll-damage { text-align: left; }
+
+/* chat: a sheet roll is a white card with the sheet's framed boxes */
+.roll-character { margin: 2px 0 4px; font-size: 12px; opacity: 0.85; }
+.roll-card { padding: 4px; border-radius: 8px; background: #fff; color: #231f20; color-scheme: light; }
+.roll-card .panel-body { display: flex; justify-content: center; }
+.roll-card .caption { margin-top: 2px; text-transform: none; letter-spacing: 0; font-size: 11px; font-weight: 400; }
+.check-numbers { display: flex; width: 100%; }
+.check-cell { flex: 1; text-align: center; font-size: 28px; font-weight: 800; line-height: 1.15; cursor: help; }
+.check-cell.dropped { color: #9a9a9a; font-weight: 600; }
+.check-cell + .check-cell { border-left: 1px solid #8886; }
+.roll-title { font-weight: 700; }
+.roll-soft { color: #8a8a8a; font-size: 10px; }
+.roll-crit { color: #b3261e; font-size: 10px; font-weight: 700; }
+.damage-total { font-size: 28px; font-weight: 800; line-height: 1.15; cursor: help; }
+.roll-type { color: #6b6b6b; }
+
+/* saving throws and skills: the checkbox toggles proficiency; the number and the name roll */
+.check-row { display: flex; align-items: center; gap: 6px; }
+.sheet .check-row input { width: auto; }
+.sheet .roll-row { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.sheet .roll-row strong { text-decoration: underline dotted; text-underline-offset: 2px; }
+.sheet .roll-row:hover { color: #58180d; }
+.sheet .roll-name { text-align: left; }
+
+/* captions that roll (Death Saves, the die in Hit Dice) */
+.sheet .caption-roll, .sheet .die-roll { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; font-weight: inherit; letter-spacing: inherit; text-transform: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 2px; }
+.sheet .caption-roll:hover, .sheet .die-roll:hover { color: #58180d; }
+
+/* print a feature in the chat */
+.feature-card > summary { gap: 6px; }
+.sheet .feature-chat { padding: 0 2px; border: 0; background: transparent; cursor: pointer; opacity: 0.6; font-size: 13px; }
+.sheet .feature-chat:hover { opacity: 1; }
+.feature-print { padding: 8px 10px; border-radius: 8px; background: #fff; color: #231f20; }
+.feature-print .feature-name { font-size: 19px; }
+.feature-print .feature-text { margin: 4px 0 0; font-size: 13px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
