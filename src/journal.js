@@ -1,4 +1,4 @@
-export const Kind = Object.freeze({ CHARACTER: 1, NOTE: 2 });
+export const Kind = Object.freeze({ CHARACTER: 1, NPC: 3 });
 export const Visibility = Object.freeze({ GM: 1, PLAYERS: 2, ALL: 3 });
 
 const isGm = (user) => user.role === "GM";
@@ -41,7 +41,7 @@ export function readSheets(metadata) {
   );
 }
 
-export const visibleCharacters = (items, user) =>
-  items.filter((i) => i.kind === Kind.CHARACTER && isVisible(i, user));
+// Things a token can be linked to: anything with a sheet.
+export const visibleLinkable = (items, user) => items.filter((i) => isVisible(i, user));
 
 export const removeItem = (items, id) => items.filter((i) => i.id !== id);

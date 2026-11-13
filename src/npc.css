@@ -1,0 +1,40 @@
+:root[data-theme="light"] .npc { --accent: #a8322d; --link: #1a5fb4; }
+.npc { --accent: #d9625f; --link: #8ab4f8; }
+.paper-dark { background: transparent; color: var(--text); padding: 14px; border-radius: 6px; font-size: 13px; }
+.npc-head { display: flex; justify-content: space-between; align-items: start; }
+.npc-head h2 { margin: 0; color: var(--accent); font-variant: small-caps; font-size: 24px; }
+.npc .gear { font-size: 18px; color: #7c5cff; opacity: 0.9; }
+.npc .gear[aria-pressed="true"] { color: var(--accent); }
+.npc .subtitle { margin: 0 0 4px; font-style: italic; font-size: 11px; opacity: 0.7; }
+.npc hr { border: 0; height: 3px; margin: 6px 0; background: linear-gradient(90deg, var(--accent), transparent); }
+.npc-block { position: relative; }
+.npc-block p { margin: 3px 0; }
+.npc-block b, .npc-section h3 { color: var(--accent); font-variant: small-caps; }
+.npc .init { position: absolute; right: 8px; top: 24px; display: grid; justify-items: center; border: 0; background: none; color: var(--accent); font-size: 22px; cursor: pointer; }
+.npc .init small { font-size: 9px; font-weight: 700; }
+.npc .abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; text-align: center; }
+.npc .ability-pill { display: grid; background: #8883; border-radius: 14px; padding: 3px 0; }
+.npc .ability-pill b { font-size: 12px; }
+.npc .roll-link { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
+.npc .roll-link:hover { color: var(--accent); text-decoration: underline; }
+.npc-section { margin-top: 16px; }
+.npc-section h3 { margin: 0 0 6px; font-size: 18px; border-bottom: 1px solid var(--accent); }
+.npc-action { position: relative; margin-bottom: 8px; }
+.npc-action > .gear { position: absolute; right: 0; top: 0; color: inherit; opacity: 0.6; }
+.npc-preview .name { font-weight: 700; }
+.npc-preview p { margin: 2px 0; }
+.npc-preview .description { opacity: 0.8; white-space: pre-wrap; }
+.npc-editor { display: grid; gap: 6px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 2px dashed #e6d800; }
+.npc .field, .npc .check { display: grid; gap: 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.npc .check { display: flex; align-items: center; gap: 6px; }
+.npc input:not([type="checkbox"]), .npc select { min-width: 0; padding: 2px 0; border: 0; border-bottom: 1px solid #8888; background: transparent; color: inherit; font: inherit; text-transform: none; }
+.npc textarea { width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #8888; border-radius: 4px; background: transparent; color: inherit; }
+.npc .line { display: flex; gap: 8px; align-items: end; }
+.npc .line > * { flex: 1 1 0; }
+.npc-form { display: grid; gap: 8px; }
+.npc-form h4 { margin: 6px 0 0; font-size: 10px; text-transform: uppercase; }
+.npc-form .center { text-align: center; }
+.npc .skill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 12px; }
+.npc .link { justify-self: start; border: 0; background: none; color: var(--link); text-decoration: underline; cursor: pointer; font-size: 10px; text-transform: uppercase; }
+.npc-block p > b { margin-right: 6px; }
+.npc-block p .roll-link { margin-right: 8px; }

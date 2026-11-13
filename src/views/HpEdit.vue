@@ -3,14 +3,15 @@ import { computed, onMounted, ref } from "vue";
 import OBR from "@owlbear-rodeo/sdk";
 import { t } from "../i18n.js";
 import { sheets, saveSheet } from "../store.js";
-import { normalizeSheet, setPath } from "../sheet.js";
+import { setPath } from "../sheet.js";
+import { normalizeAnySheet } from "../npc.js";
 import { applyHpInput, applyTempInput } from "../hp.js";
 import { HP_EDIT_ID } from "../itemModal.js";
 
 const params = new URLSearchParams(location.search);
 const sheetId = params.get("sheet");
 const isTemp = params.get("kind") === "temp";
-const sheet = computed(() => sheets.value[sheetId] && normalizeSheet(sheets.value[sheetId]));
+const sheet = computed(() => sheets.value[sheetId] && normalizeAnySheet(sheets.value[sheetId]));
 const combat = computed(() => sheet.value?.combat);
 const draft = ref("");
 const field = ref(null);

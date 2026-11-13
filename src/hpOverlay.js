@@ -1,6 +1,7 @@
 import OBR, { buildCurve, buildText } from "@owlbear-rodeo/sdk";
 import { JOURNAL_KEY, SHEET_TOKEN_KEY, readSheets, isVisible } from "./journal.js";
-import { normalizeSheet, armorClass } from "./sheet.js";
+import { armorClass } from "./sheet.js";
+import { normalizeAnySheet } from "./npc.js";
 import { hpBarModel, pillPoints, shieldPoints } from "./hp.js";
 import { showHpEdit } from "./itemModal.js";
 import { setTempMenu } from "./hpTempMenu.js";
@@ -78,9 +79,9 @@ async function modelFor(token) {
   const entry = (metadata[JOURNAL_KEY]?.items ?? []).find((i) => i.id === sheetId);
   const sheet = readSheets(metadata)[sheetId];
   if (!entry || !sheet || !isVisible(entry, { id, role })) return null;
-  const normalized = normalizeSheet(sheet);
+  const normalized = normalizeAnySheet(sheet);
   const model = hpBarModel(normalized.combat);
-  return model && { ...model, ac: armorClass(normalized) };
+  return model && { ...model, ac: normalized.npc ? normalized.combat.ac : armorClass(normalized) };
 }
 
 let latest = 0;

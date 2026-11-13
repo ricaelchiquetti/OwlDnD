@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Kind, Visibility, isVisible, canChangeVisibility, createItem, setVisibility } from "./journal.js";
 
-const item = (over = {}) => ({ id: "x", kind: Kind.NOTE, title: "t", owner: "owner", visibility: Visibility.GM, players: [], ...over });
+const item = (over = {}) => ({ id: "x", kind: Kind.NPC, title: "t", owner: "owner", visibility: Visibility.GM, players: [], ...over });
 const gm = { id: "gm", role: "GM" };
 const player = (id) => ({ id, role: "PLAYER" });
 
@@ -26,8 +26,8 @@ describe("canChangeVisibility (CA9)", () => {
 
 describe("createItem (CA5)", () => {
   it("creates GM-visible item owned by current player with numbered default title", () => {
-    const n = createItem(Kind.NOTE, [item(), item({ id: "y" })], "me", "New Note");
-    expect(n).toMatchObject({ kind: Kind.NOTE, owner: "me", visibility: Visibility.GM, title: "New Note 3" });
+    const n = createItem(Kind.NPC, [item(), item({ id: "y" })], "me", "New NPC");
+    expect(n).toMatchObject({ kind: Kind.NPC, owner: "me", visibility: Visibility.GM, title: "New NPC 3" });
     expect(n.id).toBeTruthy();
   });
   it("numbers per kind", () => {
@@ -59,18 +59,18 @@ describe("sheet storage keys (spec-fase1)", () => {
   it("returns empty when metadata is missing", () => expect(readSheets(undefined)).toEqual({}));
 });
 
-import { visibleCharacters } from "./journal.js";
+import { visibleLinkable } from "./journal.js";
 
-describe("visibleCharacters (link picker)", () => {
+describe("visibleLinkable (link picker)", () => {
   const list = [
     item({ id: "1", kind: Kind.CHARACTER }),
-    item({ id: "2", kind: Kind.NOTE, visibility: Visibility.ALL }),
+    item({ id: "2", kind: Kind.NPC, visibility: Visibility.ALL }),
     item({ id: "3", kind: Kind.CHARACTER, owner: "other" }),
     item({ id: "4", kind: Kind.CHARACTER, owner: "other", visibility: Visibility.ALL }),
   ];
-  it("keeps only characters visible to the user", () =>
-    expect(visibleCharacters(list, player("owner")).map((i) => i.id)).toEqual(["1", "4"]));
-  it("GM sees all characters", () => expect(visibleCharacters(list, gm).map((i) => i.id)).toEqual(["1", "3", "4"]));
+  it("keeps only items visible to the user", () =>
+    expect(visibleLinkable(list, player("owner")).map((i) => i.id)).toEqual(["1", "2", "4"]));
+  it("GM sees all items (characters and NPCs)", () => expect(visibleLinkable(list, gm).map((i) => i.id)).toEqual(["1", "2", "3", "4"]));
 });
 
 import { removeItem } from "./journal.js";
