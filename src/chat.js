@@ -115,10 +115,11 @@ const doubleDice = (terms) => terms.map((term) => (term.kind === "dice" ? { ...t
 
 // A roll that comes from the sheet: a d20 check, damage lines, or both (an attack). One message, shown as a card.
 // On a critical (spec CC1) the dice of every damage line are rolled twice; flat bonuses are not doubled.
-export function buildSheetMessage({ character, label, modifier, mode = RollMode.NORMAL, critRange, damage = [] }, meta, random) {
+export function buildSheetMessage({ character, label, modifier, mode = RollMode.NORMAL, critRange, damage = [], card }, meta, random) {
   if (modifier === undefined && !damage.length) return { error: "invalidRoll" };
   const message = { ...meta, kind: "sheet", character, label };
   if (modifier !== undefined) message.check = rollD20(modifier, mode, random);
+  if (card) message.card = cleanCard(card);
   if (!damage.length) return message;
   const crit = message.check ? isCritical(message.check, critRange) : false;
   if (crit) message.crit = true;
@@ -132,12 +133,29 @@ export function buildSheetMessage({ character, label, modifier, mode = RollMode.
   return message;
 }
 
-// A feature printed from the sheet. Needs at least a name or a description; long text is capped.
-export function buildFeatureMessage({ character, name, source, description }, meta) {
-  const title = name.trim().slice(0, MAX_FEATURE_TITLE);
-  const text = description.trim().slice(0, MAX_FEATURE_DESCRIPTION);
-  if (!title && !text) return { error: "empty" };
-  return { ...meta, kind: "feature", character, name: title, source: source.trim().slice(0, MAX_FEATURE_TITLE), description: text };
+const MAX_DETAILS = 12;
+const MAX_DETAIL_TEXT = 200;
+
+const cleanDetails = (details) =>
+  details
+    .map(({ label, value }) => ({ label: String(label).trim().slice(0, MAX_FEATURE_TITLE), value: String(value).trim().slice(0, MAX_DETAIL_TEXT) }))
+    .filter((detail) => detail.value)
+    .slice(0, MAX_DETAILS);
+
+// The text of a feature or spell: title, subtitle, description and, for a spell, labelled `details`, `higher` levels text and a `footer` line.
+function cleanCard({ name, source, description, details, higher, footer }) {
+  const card = { name: name.trim().slice(0, MAX_FEATURE_TITLE), source: source.trim().slice(0, MAX_FEATURE_TITLE), description: description.trim().slice(0, MAX_FEATURE_DESCRIPTION) };
+  if (details?.length) card.details = cleanDetails(details);
+  if (higher?.trim()) card.higher = higher.trim().slice(0, MAX_FEATURE_DESCRIPTION);
+  if (footer?.trim()) card.footer = footer.trim().slice(0, MAX_FEATURE_TITLE);
+  return card;
+}
+
+// A feature (or a spell) printed from the sheet. Needs at least a name or a description.
+export function buildFeatureMessage({ character, ...spec }, meta) {
+  const card = cleanCard(spec);
+  if (!card.name && !card.description) return { error: "empty" };
+  return { ...meta, kind: "feature", character, ...card };
 }
 
 // One line for the toast: "Peper: Longsword — 24 (16 / 24) · 8 Slashing".

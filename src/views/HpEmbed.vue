@@ -4,7 +4,8 @@ import OBR from "@owlbear-rodeo/sdk";
 import { t } from "../i18n.js";
 import { items, sheets, user, saveSheet } from "../store.js";
 import { SHEET_TOKEN_KEY, isVisible } from "../journal.js";
-import { normalizeSheet, setPath } from "../sheet.js";
+import { setPath } from "../sheet.js";
+import { normalizeAnySheet } from "../npc.js";
 import { applyHpInput, applyTempInput } from "../hp.js";
 
 const isTemp = new URLSearchParams(location.search).get("kind") === "temp";
@@ -23,7 +24,7 @@ onMounted(() => OBR.onReady(() => {
 }));
 
 const entry = computed(() => items.value.find((i) => i.id === sheetId.value));
-const sheet = computed(() => sheets.value[sheetId.value] && normalizeSheet(sheets.value[sheetId.value]));
+const sheet = computed(() => sheets.value[sheetId.value] && normalizeAnySheet(sheets.value[sheetId.value]));
 const combat = computed(() => sheet.value?.combat);
 const usable = computed(() => (isTemp ? combat.value?.hpTemp > 0 : combat.value?.hpMax > 0) && entry.value && isVisible(entry.value, user.value));
 const placeholder = computed(() => (isTemp ? String(combat.value.hpTemp) : `${combat.value.hpCurrent}/${combat.value.hpMax}${combat.value.hpTemp ? ` (+${combat.value.hpTemp})` : ''}`));

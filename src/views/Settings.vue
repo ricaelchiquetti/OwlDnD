@@ -67,6 +67,8 @@ function verdict(result) {
       <option v-for="(name, code) in LOCALES" :key="code" :value="code">{{ name }}</option>
     </select>
   </label>
+  <br>
+  <br>
   <label>
     {{ t("settings.theme") }}
     <select :value="theme" @change="setTheme($event.target.value)">

@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import { t } from "../i18n.js";
-import { Ability, SKILLS, HIT_DICE, AcMode, newClass, characterLevel } from "../sheet.js";
+import { Ability, SKILLS, HIT_DICE, AcMode, CasterType, newClass, characterLevel } from "../sheet.js";
 
 const props = defineProps({ sheet: Object });
 const emit = defineEmits(["update"]);
@@ -27,6 +27,9 @@ const removeClass = (index) => set("extraClasses", props.sheet.extraClasses.filt
         <select :aria-label="t('sheet.dieType')" :value="extra.die" @change="set(`extraClasses.${index}.die`, $event.target.value)">
           <option v-for="die in HIT_DICE" :key="die" :value="die">{{ die }}</option>
         </select>
+        <select :aria-label="t('settings.caster')" :title="t('settings.caster')" :value="extra.caster" @change="set(`extraClasses.${index}.caster`, $event.target.value)">
+          <option v-for="type in Object.values(CasterType)" :key="type" :value="type">{{ t(`caster.${type}`) }}</option>
+        </select>
         <button type="button" class="danger" :aria-label="t('settings.removeClass')" @click="removeClass(index)">×</button>
       </div>
       <button type="button" @click="addClass">{{ t("settings.addClass") }}</button>
@@ -47,10 +50,15 @@ const removeClass = (index) => set("extraClasses", props.sheet.extraClasses.filt
       </label>
     </section>
 
-    <section>
+    <section class="die-caster">
       <label>{{ t("settings.mainClassDie") }}
         <select :value="sheet.hitDice.die" @change="set('hitDice.die', $event.target.value)">
           <option v-for="die in HIT_DICE" :key="die" :value="die">{{ die }}</option>
+        </select>
+      </label>
+      <label>{{ t("settings.caster") }} ({{ t("settings.mainClass") }})
+        <select :value="sheet.spellcasting.type" @change="set('spellcasting.type', $event.target.value)">
+          <option v-for="type in Object.values(CasterType)" :key="type" :value="type">{{ t(`caster.${type}`) }}</option>
         </select>
       </label>
     </section>

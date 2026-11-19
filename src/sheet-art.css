@@ -178,6 +178,53 @@
 .feature-card > summary { gap: 6px; }
 .sheet .feature-chat { padding: 0 2px; border: 0; background: transparent; cursor: pointer; opacity: 0.6; font-size: 13px; }
 .sheet .feature-chat:hover { opacity: 1; }
-.feature-print { padding: 8px 10px; border-radius: 8px; background: #fff; color: #231f20; }
-.feature-print .feature-name { font-size: 19px; }
+.feature-print { min-width: 0; overflow-wrap: anywhere; padding: 8px 10px; border-radius: 8px; background: #fff; color: #231f20; }
+.feature-print .feature-name { font-size: 26px; }
 .feature-print .feature-text { margin: 4px 0 0; font-size: 13px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* bio tab: the printed page's layout (appearance | allies on top, backstory tall on the left, features and treasure on the right) */
+.bio-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px; }
+.bio-grid { display: grid; grid-template-columns: 1fr 2fr; grid-template-rows: repeat(3, minmax(180px, 1fr)); gap: 8px; margin-top: 10px; }
+.bio-grid .panel { display: flex; flex-direction: column; min-height: 0; }
+.bio-grid .panel-body { flex: 1; min-height: 0; }
+.bio-grid textarea { width: 100%; height: 100%; box-sizing: border-box; padding: 0; border: 0; background: transparent; color: inherit; resize: none; }
+.bio-appearance { grid-area: 1 / 1; }
+.bio-allies { grid-area: 1 / 2; }
+.bio-backstory { grid-area: 2 / 1 / 4 / 2; }
+.bio-features { grid-area: 2 / 2; }
+.bio-treasure { grid-area: 3 / 2; }
+
+/* spells tab */
+.spell-plate { display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; padding: 10px 14px; border: 2px solid #231f20; border-radius: 10px; background: #dcddde; }
+.spell-stat { display: grid; gap: 4px; text-align: center; }
+.spell-stat > span { font-size: 8px; font-weight: 700; text-transform: uppercase; }
+/* octagon: a black clipped shape with a white one inset on top */
+.spell-box { --cut: 12px; position: relative; display: grid; place-items: center; height: 46px; background: #231f20; clip-path: polygon(var(--cut) 0, calc(100% - var(--cut)) 0, 100% var(--cut), 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, var(--cut) 100%, 0 calc(100% - var(--cut)), 0 var(--cut)); }
+.spell-box::before { content: ""; position: absolute; inset: 2px; background: #fff; clip-path: inherit; }
+.spell-box > * { position: relative; }
+.spell-box strong { font-size: 24px; }
+.spell-box select { width: 80%; padding: 0; border: 0; background: transparent; color: inherit; text-align: center; text-align-last: center; font-size: 14px; appearance: none; cursor: pointer; }
+.spell-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; align-items: start; }
+.spell-column { display: grid; gap: 10px; }
+.spell-level-head { display: grid; grid-template-columns: 19% 1fr 2fr; align-items: center; aspect-ratio: 174.16 / 37.12; padding-right: 6%; background: url(/img/SpellLevel.svg) center / 100% 100% no-repeat; }
+.spell-level-head.cantrip { grid-template-columns: 19% 1fr; background-image: url(/img/Cantrip.svg); text-align: center; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.spell-level-head b { text-align: center; font-size: 15px; }
+.spell-level-head label { display: grid; justify-items: center; }
+.spell-level-head small { font-size: 7px; text-transform: uppercase; opacity: 0.6; }
+.spell-level-head input { width: 70%; padding: 0; border: 0; background: transparent; text-align: center; font-size: 18px; }
+.spell-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; border-bottom: 1px solid #0003; }
+.spell-name { flex: 1; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spell-name:hover { color: #58180d; }
+.spell-tags { font-size: 9px; font-weight: 700; white-space: nowrap; }
+.sheet .spell-prepared { width: auto; flex: none; accent-color: #c0392b; }
+.spell-editor { display: grid; gap: 6px; margin: 4px 0 8px; padding: 8px; border-top: 1px dashed #8886; }
+.spell-editor label { display: grid; gap: 2px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+.spell-editor label.check { display: flex; align-items: center; gap: 4px; }
+.spell-editor .line { display: flex; flex-wrap: wrap; align-items: end; gap: 8px; }
+.spell-editor .line > label { flex: 1 1 80px; min-width: 0; }
+.spell-editor input:not([type="checkbox"]), .spell-editor select { min-width: 0; padding: 2px 0; border: 0; border-bottom: 1px solid #0006; background: transparent; color: inherit; text-transform: none; }
+.spell-editor textarea { box-sizing: border-box; width: 100%; resize: vertical; }
+.spell-editor .done { justify-self: end; padding: 4px 14px; border: 0; border-radius: 14px; background: #231f20; color: #fff; font-weight: 700; cursor: pointer; }
+.spell-editor .components { display: flex; gap: 14px; }
+.spell-read { border: 0; background: none; color: inherit; opacity: 0.6; cursor: pointer; }
+.spell-read:hover, .spell-read[aria-expanded="true"] { opacity: 1; }

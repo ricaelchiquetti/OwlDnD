@@ -3,11 +3,11 @@ import { computed } from "vue";
 import OBR from "@owlbear-rodeo/sdk";
 import { t } from "../i18n.js";
 import { items, user, saveItems } from "../store.js";
-import { visibleCharacters, SHEET_TOKEN_KEY } from "../journal.js";
+import { visibleLinkable, SHEET_TOKEN_KEY } from "../journal.js";
 import { LINK_MODAL_ID } from "../itemModal.js";
 
 const tokenId = new URLSearchParams(location.search).get("token");
-const characters = computed(() => visibleCharacters(items.value, user.value));
+const characters = computed(() => visibleLinkable(items.value, user.value));
 const close = () => OBR.modal.close(LINK_MODAL_ID);
 
 async function link(sheetId) {

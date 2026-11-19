@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch, nextTick, onMounted } from "vue";
 import { t } from "../i18n.js";
+import FeatureCard from "./FeatureCard.vue";
 import { messages, user, sendChat, sceneReady } from "../store.js";
 import { describeCheck, RollMode } from "../chat.js";
 import { signed } from "../sheet.js";
@@ -54,6 +55,7 @@ const damageIndex = (message, i) => i + (message.check ? 1 : 0);
 
         <template v-if="message.kind === 'sheet'">
           <p v-if="message.character" class="roll-character">{{ message.character }}</p>
+          <FeatureCard v-if="message.card" :card="message.card" />
           <div class="roll-card stack">
             <SheetPanel v-if="message.check" :frame="frameFor(message, 0)">
               <div class="check-numbers">
@@ -83,11 +85,7 @@ const damageIndex = (message, i) => i + (message.check ? 1 : 0);
 
         <template v-else-if="message.kind === 'feature'">
           <p v-if="message.character" class="roll-character">{{ message.character }}</p>
-          <article class="feature-print">
-            <h4 v-if="message.name" class="feature-name">{{ message.name }}</h4>
-            <p v-if="message.source" class="feature-source">{{ message.source }}</p>
-            <p v-if="message.description" class="feature-text">{{ message.description }}</p>
-          </article>
+          <FeatureCard :card="message" />
         </template>
 
         <template v-else-if="message.kind === 'roll'">
