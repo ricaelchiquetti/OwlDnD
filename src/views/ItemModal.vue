@@ -14,10 +14,12 @@ import { initiative } from "../sheet.js";
 import { itemId, tokenId, closeFrame, startMove, startResize, minimized, toggleMinimize } from "../popoverFrame.js";
 import SheetTab from "./SheetTab.vue";
 import NpcSheet from "./NpcSheet.vue";
+import BioTab from "./BioTab.vue";
+import SpellsTab from "./SpellsTab.vue";
 import ItemSettings from "./ItemSettings.vue";
 import CharacterOptions from "./CharacterOptions.vue";
 
-const TABS = { SHEET: "sheet", SETTINGS: "settings" };
+const TABS = { SHEET: "sheet", BIO: "bio", SPELLS: "spells", SETTINGS: "settings" };
 const TAB_KEY = `owldnd.tab.${itemId}`;
 
 const item = computed(() => items.value.find((i) => i.id === itemId));
@@ -30,14 +32,18 @@ const sheet = computed(() => {
   return isNpc.value ? normalizeNpc(saved) : normalizeSheet(saved);
 });
 const editable = computed(() => canChangeVisibility(item.value, user.value));
-const tabs = computed(() => (hasSheet.value ? Object.values(TABS) : [TABS.SETTINGS]));
+const tabs = computed(() => {
+  if (isCharacter.value) return Object.values(TABS);
+  return isNpc.value ? [TABS.SHEET, TABS.SETTINGS] : [TABS.SETTINGS];
+});
 
 // sessionStorage survives the page reload that happens when the popover is moved
 const stored = sessionStorage.getItem(TAB_KEY);
 const activeTab = ref(Object.values(TABS).includes(stored) ? stored : TABS.SHEET);
 watch(activeTab, (tab) => sessionStorage.setItem(TAB_KEY, tab));
 const shownTab = computed(() => (tabs.value.includes(activeTab.value) ? activeTab.value : tabs.value[0]));
-const tabLabel = (tab) => (tab === TABS.SHEET ? t("sheetTab.sheet") : t("tab.settings"));
+const TAB_LABELS = { [TABS.SHEET]: "sheetTab.sheet", [TABS.BIO]: "sheetTab.bio", [TABS.SPELLS]: "sheetTab.spells", [TABS.SETTINGS]: "tab.settings" };
+const tabLabel = (tab) => t(TAB_LABELS[tab]);
 
 // closes if the item is deleted or stops being visible to this user
 // items are set before user in store.init, so "missing" is only trusted once the user is known
@@ -105,6 +111,8 @@ const rename = (title) => title.trim() && saveItems(items.value.map((i) => (i.id
     </nav>
     <main v-show="!minimized">
       <SheetTab v-if="isCharacter && sheet && shownTab === TABS.SHEET" :sheet="sheet" :name="item.title" :editable="editable" @update="updateSheet" @roll-initiative="rollInitiative" @roll="rollFromSheet" @print-feature="printFeature" />
+      <BioTab v-else-if="isCharacter && sheet && shownTab === TABS.BIO" :sheet="sheet" :name="item.title" :editable="editable" @update="updateSheet" />
+      <SpellsTab v-else-if="isCharacter && sheet && shownTab === TABS.SPELLS" :sheet="sheet" :name="item.title" :editable="editable" @update="updateSheet" @roll="rollFromSheet" @print-feature="printFeature" />
       <NpcSheet v-else-if="isNpc && sheet && shownTab === TABS.SHEET" :npc="sheet" :name="item.title" :editable="editable" @update="updateSheet" @rename="rename" @roll-initiative="rollInitiative" @roll="rollFromSheet" @print-feature="printFeature" />
       <div v-else>
         <CharacterOptions v-if="isCharacter && sheet && editable" :sheet="sheet" @update="updateSheet" />

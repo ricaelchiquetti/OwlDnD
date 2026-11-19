@@ -1,4 +1,5 @@
 import { toPlain } from "./plain.js";
+import { parseDice } from "./chat.js";
 
 export const Ability = Object.freeze({ STR: "str", DEX: "dex", CON: "con", INT: "int", WIS: "wis", CHA: "cha" });
 
@@ -13,13 +14,38 @@ export const SKILLS = Object.freeze({
 export const HIT_DICE = Object.freeze(["d4", "d6", "d8", "d10", "d12"]);
 export const AcMode = Object.freeze({ AUTO: "auto", MANUAL: "manual", CUSTOM: "custom" });
 const AC_BASE = 10;
-export const newClass = () => ({ name: "", level: 1, die: "d8" });
+export const newClass = () => ({ name: "", level: 1, die: "d8", caster: CasterType.NONE });
 
 const MIN_LEVEL = 1;
 const MAX_LEVEL = 20;
 const DEFAULT_SCORE = 10;
 const BASE_PASSIVE = 10;
 const flags = (keys) => Object.fromEntries(keys.map((k) => [k, false]));
+
+export const CasterType = Object.freeze({ NONE: "none", FULL: "full", HALF: "half", PACT: "pact", ELDRITCH: "eldritch", TRICKSTER: "trickster" });
+
+// Slots per spell level (1st..9th) for a full caster, indexed by caster level 1..20.
+const FULL_CASTER_SLOTS = [
+  [2], [3], [4, 2], [4, 3], [4, 3, 2], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 3, 1], [4, 3, 3, 3, 2],
+  [4, 3, 3, 3, 2, 1], [4, 3, 3, 3, 2, 1], [4, 3, 3, 3, 2, 1, 1], [4, 3, 3, 3, 2, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 2, 1, 1, 1],
+  [4, 3, 3, 3, 2, 1, 1, 1, 1], [4, 3, 3, 3, 3, 1, 1, 1, 1], [4, 3, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 3, 2, 2, 1, 1],
+];
+// Warlock: [number of slots, their spell level], indexed by level 1..20.
+const PACT_SLOTS = [[1, 1], [2, 1], [2, 2], [2, 2], [2, 3], [2, 3], [2, 4], [2, 4], [2, 5], [2, 5], [3, 5], [3, 5], [3, 5], [3, 5], [3, 5], [3, 5], [4, 5], [4, 5], [4, 5], [4, 5]];
+const THIRD_CASTER_MIN_LEVEL = 3;
+const FRACTION = { [CasterType.HALF]: 2, [CasterType.ELDRITCH]: 3, [CasterType.TRICKSTER]: 3 };
+
+export const SPELL_LEVELS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+export const SpellOutput = Object.freeze({ SHEET: "sheet", ATTACK: "attack" });
+export const SpellAttack = Object.freeze({ NONE: "", MELEE: "melee", RANGED: "ranged" });
+export const newSpell = () => ({
+  name: "", prepared: false, school: "", ritual: false, castingTime: "", range: "", target: "",
+  v: false, s: false, m: false, materials: "", concentration: false, duration: "",
+  ability: SPELL_ABILITY, innate: "", output: SpellOutput.SHEET, description: "", higherLevels: "",
+  attackType: SpellAttack.NONE, damage1: { dice: "", type: "" }, damage2: { dice: "", type: "" }, healing: "",
+  addModifier: false, hasSave: false, save: { ability: "", effect: "" }, damagePerLevel: "", includeDescription: true,
+});
+const newSpellLevel = () => ({ total: 0, remaining: 0, list: [] });
 
 export const createSheet = () => ({
   level: MIN_LEVEL,
@@ -41,8 +67,10 @@ export const createSheet = () => ({
   proficiencies: [],
   resources: [],
   features: [],
-  spellcasting: { ability: "" },
-  text: { traits: "", ideals: "", bonds: "", flaws: "" },
+  spellcasting: { ability: "", type: CasterType.NONE },
+  spells: { cantrips: [], levels: Object.fromEntries(SPELL_LEVELS.map((level) => [level, newSpellLevel()])) },
+  bio: { age: "", size: "", height: "", weight: "", eyes: "", skin: "", hair: "" },
+  text: { traits: "", ideals: "", bonds: "", flaws: "", appearance: "", allies: "", backstory: "", additionalFeatures: "", treasure: "" },
   locks: { header: false, traits: false, ideals: false, bonds: false, flaws: false },
 });
 
@@ -217,6 +245,111 @@ const migrateTool = (tool) => ({
 
 export const saveDc = (sheet, ref) => 8 + proficiencyBonus(characterLevel(sheet)) + modifierFor(sheet, ref);
 
+const BASE_SAVE_DC = 8;
+const MAX_CASTER_LEVEL = 20;
+
+const slotsAtCasterLevel = (level) => (level < 1 ? [] : FULL_CASTER_SLOTS[Math.min(level, MAX_CASTER_LEVEL) - 1]);
+
+// Every class with its caster type and level: the main one first, then the extra ones.
+const casterClasses = (sheet) => [
+  { type: sheet.spellcasting.type, level: sheet.level },
+  ...(sheet.extraClasses ?? []).map((c) => ({ type: c.caster ?? CasterType.NONE, level: Number(c.level) || 0 })),
+];
+
+const isSlotCaster = ({ type }) => type !== CasterType.NONE && type !== CasterType.PACT;
+
+// A lone caster reads its own table (half and third casters round up); with several the book adds their fractions rounded down.
+const SOLO_MIN_LEVEL = { [CasterType.FULL]: 1, [CasterType.HALF]: 2, [CasterType.ELDRITCH]: THIRD_CASTER_MIN_LEVEL, [CasterType.TRICKSTER]: THIRD_CASTER_MIN_LEVEL };
+const divisor = (type) => FRACTION[type] ?? 1;
+
+function regularSlots(casters) {
+  if (casters.length === 1) {
+    const [{ type, level }] = casters;
+    return level < SOLO_MIN_LEVEL[type] ? [] : slotsAtCasterLevel(Math.ceil(level / divisor(type)));
+  }
+  return slotsAtCasterLevel(casters.reduce((sum, { type, level }) => sum + Math.floor(level / divisor(type)), 0));
+}
+
+// Pact slots are a separate pool: they all share one spell level.
+function pactSlots(classes) {
+  const level = classes.reduce((sum, c) => sum + c.level, 0);
+  const [count, spellLevel] = PACT_SLOTS[Math.min(level, MAX_CASTER_LEVEL) - 1] ?? [0, 1];
+  return Array.from({ length: spellLevel }, (_, i) => (i === spellLevel - 1 ? count : 0));
+}
+
+// Slots per spell level (1..9) from the caster type of every class; all zero when no class casts.
+export function spellSlots(sheet) {
+  const classes = casterClasses(sheet);
+  const regular = regularSlots(classes.filter(isSlotCaster));
+  const pact = pactSlots(classes.filter(({ type }) => type === CasterType.PACT));
+  return Object.fromEntries(SPELL_LEVELS.map((level) => [level, (regular[level - 1] ?? 0) + (pact[level - 1] ?? 0)]));
+}
+
+export const hasAutoSlots = (sheet) => casterClasses(sheet).some(({ type }) => type !== CasterType.NONE);
+
+// Automatic for casters; typed by hand for CasterType.NONE.
+export const spellSlotTotal = (sheet, level) => (hasAutoSlots(sheet) ? spellSlots(sheet)[level] : sheet.spells.levels[level].total);
+
+const spellComponents = (spell) => {
+  const letters = [["v", "V"], ["s", "S"], ["m", "M"]].filter(([key]) => spell[key]).map(([, letter]) => letter).join(", ");
+  return spell.m && spell.materials ? `${letters} (${spell.materials})` : letters;
+};
+
+// The spell as a chat card: subtitle, labelled data rows (only the filled ones), text, higher levels and the save DC.
+export function spellPrint(sheet, spell, level, labels) {
+  const subtitle = [spell.school, level > 0 ? String(level) : labels.cantrip].filter(Boolean).join(" ");
+  const duration = spell.concentration && spell.duration ? `${labels.concentration} ${spell.duration}` : spell.duration;
+  const details = [[labels.castingTime, spell.castingTime], [labels.range, spell.range], [labels.target, spell.target], [labels.components, spellComponents(spell)], [labels.duration, duration]]
+    .filter(([, value]) => value)
+    .map(([label, value]) => ({ label, value }));
+  const ability = spell.ability === SPELL_ABILITY ? sheet.spellcasting.ability : spell.ability;
+  return {
+    name: spell.name,
+    source: spell.ritual ? `${subtitle} · ${labels.ritual}` : subtitle,
+    description: spell.description,
+    details,
+    higher: spell.higherLevels,
+    ...(spell.hasSave && ability ? { footer: `${labels.dc}: ${spellDc(sheet, spell)}` } : {}),
+  };
+}
+
+// "spell" on a spell means the sheet's spellcasting ability.
+export const spellDc = (sheet, spell) => saveDc(sheet, spell.ability);
+
+const validDice = (dice) => parseDice(dice ?? "").ok;
+
+// What the chat rolls for an attack-type spell: the d20 (only with an attack type) and each damage/healing line with valid dice.
+// "Add modifier" puts the ability modifier on the first line.
+export function spellRolls(sheet, spell, healingLabel = "Healing") {
+  if (spell.output !== SpellOutput.ATTACK) return { damage: [] };
+  const mod = modifierFor(sheet, spell.ability);
+  const lines = [
+    { dice: spell.damage1.dice, type: spell.damage1.type },
+    { dice: spell.damage2.dice, type: spell.damage2.type },
+    { dice: spell.healing, type: healingLabel },
+  ].filter((line) => validDice(line.dice));
+  const damage = lines.map((line, index) => ({ expression: `${line.dice.trim()}${spell.addModifier && index === 0 && mod ? signed(mod) : ""}`, type: line.type }));
+  const attack = spell.attackType === SpellAttack.NONE ? {} : { modifier: proficiencyBonus(characterLevel(sheet)) + mod };
+  return { ...attack, damage };
+}
+const hasSpellAbility = (sheet) => Boolean(sheet.spellcasting.ability);
+
+// null while no spellcasting ability is chosen.
+export const spellSaveDc = (sheet) => (hasSpellAbility(sheet) ? saveDc(sheet, SPELL_ABILITY) : null);
+export const spellAttackBonus = (sheet) => (hasSpellAbility(sheet) ? saveDc(sheet, SPELL_ABILITY) - BASE_SAVE_DC : null);
+
+const normalizeSpellList = (list) => (Array.isArray(list) ? list : []).map((entry) => withDefaults(newSpell(), entry));
+
+function normalizeSpells(saved) {
+  const levels = Object.fromEntries(
+    SPELL_LEVELS.map((level) => {
+      const entry = withDefaults(newSpellLevel(), saved?.levels?.[level]);
+      return [level, { ...entry, list: normalizeSpellList(saved?.levels?.[level]?.list) }];
+    }),
+  );
+  return { cantrips: normalizeSpellList(saved?.cantrips), levels };
+}
+
 export const normalizeSheet = (saved) => ({
   ...withDefaults(createSheet(), saved),
   attacks: (Array.isArray(saved?.attacks) ? saved.attacks : []).map((attack) => withDefaults(newAttack(), attack)),
@@ -225,6 +358,7 @@ export const normalizeSheet = (saved) => ({
     const item = withDefaults(newEquipment(), entry);
     return { ...item, effects: item.effects.map((effect) => withDefaults(newItemEffect(), effect)) };
   }),
+  spells: normalizeSpells(saved?.spells),
   extraClasses: (Array.isArray(saved?.extraClasses) ? saved.extraClasses : []).map((entry) => withDefaults(newClass(), entry)),
 });
 

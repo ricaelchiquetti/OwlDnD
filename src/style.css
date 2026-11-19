@@ -72,6 +72,8 @@ main { padding: 12px; }
 .gear { border: 0; background: none; color: inherit; opacity: 0.5; cursor: pointer; }
 .gear[aria-pressed="true"] { opacity: 1; color: #7c5cff; }
 .feature-text { margin: 4px 0; white-space: pre-wrap; }
+.feature-detail { margin: 0; font-size: 0.8em; line-height: 1.3; }
+.feature-footer { margin: 6px 0 0; padding-top: 4px; border-top: 1px solid #8884; text-align: center; font-size: 0.8em; font-weight: 600; text-transform: uppercase; }
 .item-settings { display: grid; gap: 8px; margin-top: 8px; }
 .title-row { display: flex; justify-content: space-between; align-items: center; }
 fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
@@ -102,7 +104,7 @@ fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
 .char-options label { display: grid; gap: 2px; font-size: 12px; }
 .char-options input, .char-options select, .char-options button { font-size: 14px; }
 .char-options .check { display: flex; align-items: center; gap: 6px; }
-.class-row { display: grid; grid-template-columns: 1fr 64px 76px auto; gap: 4px; }
+.class-row { display: grid; grid-template-columns: 1fr 64px 76px 1fr auto; gap: 4px; }
 .skill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 8px; }
 .custom-ac { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; text-transform: uppercase; }
 .custom-ac .ac-base { width: 64px; }
@@ -156,3 +158,13 @@ fieldset.plain { border: 0; padding: 0; margin: 0; min-width: 0; }
 
 .hp-edit { padding: 8px; }
 .hp-edit input { width: 100%; font: inherit; text-align: center; box-sizing: border-box; }
+.die-caster { display: flex; gap: 12px; }
+.die-caster label { flex: 1; }
+.spell-text { white-space: pre-line; }
+.spell-card { border: 1px solid #8884; border-radius: 6px; }
+.spell-card > button { border: 0; }
+.spell-detail { padding: 0 10px 10px; display: grid; gap: 4px; font-size: 13px; }
+.spell-detail p { margin: 0; }
+.diagnostics .sheet > button { padding: 8px; cursor: pointer; }
+.hint { margin: 0; font-size: 12px; overflow-wrap: anywhere; }
+.spell-detail button { padding: 8px; cursor: pointer; }

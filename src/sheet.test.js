@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { newSpell, describe, it, expect } from "vitest";
 import { parseDice } from "./chat.js";
 import { hitDiceExpression, damageExpression, deathSaveBonus, DEATH_SAVE, newItemEffect, ALL_SAVES, EffectTarget, abilityScoreModified, abilityScore, EffectMode, Ability, SKILLS, createSheet, abilityModifier, proficiencyBonus, savingThrow, skillBonus, passivePerception, initiative } from "./sheet.js";
 
@@ -63,7 +63,7 @@ describe("derived stats", () => {
   });
 });
 
-import { EquipmentKind, ArmorType, newEquipment, automaticArmorClass, hitDiceTotal, hitDiceTypes, HIT_DICE, AcMode, newClass, characterLevel, armorClass, ASK_ABILITY, ToolProficiency, newTool, toolBonus, toolBonusText, SPELL_ABILITY, newAttack, signed, modifierFor, attackBonus, attackBonusText, damageText, attackDamageText, saveDc, normalizeSheet, newResource, newFeature, setPath, totalWeight, Encumbrance, encumbrance, featureIndexes, withDefaults } from "./sheet.js";
+import { EquipmentKind, ArmorType, newEquipment, automaticArmorClass, hitDiceTotal, hitDiceTypes, HIT_DICE, AcMode, newClass, characterLevel, armorClass, ASK_ABILITY, ToolProficiency, newTool, toolBonus, toolBonusText, SPELL_ABILITY, newAttack, signed, modifierFor, attackBonus, attackBonusText, damageText, attackDamageText, saveDc, normalizeSheet, newResource, newFeature, setPath, totalWeight, Encumbrance, encumbrance, featureIndexes, withDefaults, spellSaveDc, spellAttackBonus, newSpell, SPELL_LEVELS, spellRolls, spellDc, spellPrint, CasterType, spellSlots, spellSlotTotal, hasAutoSlots } from "./sheet.js";
 
 describe("page 1 fields (CA-F7)", () => {
   it("new sheet has every page 1 section with defaults", () => {
@@ -77,8 +77,8 @@ describe("page 1 fields (CA-F7)", () => {
     expect(s.hitDice).toEqual({ current: 1, die: "d8" });
     expect(s.deathSaves).toEqual({ successes: 0, failures: 0 });
     expect(s.currency).toEqual({ cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 });
-    expect(s.text).toEqual({ traits: "", ideals: "", bonds: "", flaws: "" });
-    expect(s.spellcasting).toEqual({ ability: "" });
+    expect(s.text).toMatchObject({ traits: "", ideals: "", bonds: "", flaws: "" });
+    expect(s.spellcasting).toMatchObject({ ability: "" });
     expect(s.locks).toEqual({ header: false, traits: false, ideals: false, bonds: false, flaws: false });
     for (const list of ["attacks", "equipment", "tools", "proficiencies", "resources", "features"]) expect(s[list]).toEqual([]);
   });
@@ -243,7 +243,7 @@ describe("multiclass (characterLevel)", () => {
     expect(characterLevel(withScores({}, { level: 3, extraClasses: [{ ...newClass(), level: 2 }, { ...newClass(), level: 4 }] }))).toBe(9));
   it("drives the proficiency bonus (level 9 -> +4)", () =>
     expect(savingThrow(withScores({ str: 10 }, { level: 5, extraClasses: [{ ...newClass(), level: 4 }], saveProf: { ...createSheet().saveProf, str: true } }), "str")).toBe(4));
-  it("a new class entry starts at level 1 with a d8", () => expect(newClass()).toEqual({ name: "", level: 1, die: "d8" }));
+  it("a new class entry starts at level 1 with a d8", () => expect(newClass()).toEqual({ name: "", level: 1, die: "d8", caster: "none" }));
 });
 
 describe("expertise", () => {
@@ -315,7 +315,7 @@ describe("hitDiceTypes (multiclass)", () => {
 
 describe("normalizeSheet extra class die", () => {
   it("gives an extra class saved without a die the default d8", () =>
-    expect(normalizeSheet({ ...createSheet(), extraClasses: [{ name: "Cleric", level: 2 }] }).extraClasses[0]).toEqual({ name: "Cleric", level: 2, die: "d8" }));
+    expect(normalizeSheet({ ...createSheet(), extraClasses: [{ name: "Cleric", level: 2 }] }).extraClasses[0]).toMatchObject({ name: "Cleric", level: 2, die: "d8" }));
   it("keeps a chosen die", () =>
     expect(normalizeSheet({ ...createSheet(), extraClasses: [{ name: "Cleric", level: 2, die: "d12" }] }).extraClasses[0].die).toBe("d12"));
 });
@@ -510,4 +510,147 @@ describe("hitDiceExpression (what a hit die click rolls)", () => {
   it("uses the Constitution with item effects", () =>
     expect(hitDiceExpression(withScores({ con: 10 }, { equipment: [{ ...newEquipment(), kind: EquipmentKind.MAGIC, equipped: true, effects: [{ target: "ability", ability: "con", mode: "set", value: 18 }] }] }), "d8")).toBe("1d8+4"));
   it("always parses as a valid roll", () => expect(parseDice(hitDiceExpression(withScores({ con: 16 }), "d12")).ok).toBe(true));
+});
+
+describe("bio tab fields (bio spec CA1, CA2)", () => {
+  const BIO_FIELDS = ["age", "size", "height", "weight", "eyes", "skin", "hair"];
+  const BIO_TEXTS = ["appearance", "allies", "backstory", "additionalFeatures", "treasure"];
+  it("createSheet starts with every bio field and text empty", () => {
+    const sheet = createSheet();
+    for (const key of BIO_FIELDS) expect(sheet.bio[key]).toBe("");
+    for (const key of BIO_TEXTS) expect(sheet.text[key]).toBe("");
+  });
+  it("an old sheet without them gets them empty and keeps the rest", () => {
+    const old = { ...createSheet(), text: { traits: "Brave", ideals: "", bonds: "", flaws: "" } };
+    delete old.bio;
+    const sheet = normalizeSheet(old);
+    expect(sheet.text.traits).toBe("Brave");
+    expect(sheet.bio.age).toBe("");
+    expect(sheet.text.treasure).toBe("");
+  });
+});
+
+describe("spells (magias spec CA1-CA3)", () => {
+  it("createSheet has empty cantrips and slots for levels 1-9", () => {
+    const { spells } = createSheet();
+    expect(spells.cantrips).toEqual([]);
+    expect(Object.keys(spells.levels)).toEqual(SPELL_LEVELS.map(String));
+    expect(spells.levels[1]).toEqual({ total: 0, remaining: 0, list: [] });
+  });
+  it("an old sheet gets the defaults and incomplete spells are filled", () => {
+    const old = { ...createSheet(), spells: { cantrips: [{ name: "Light" }], levels: { 1: { total: 4, remaining: 3, list: [{ name: "Bless", prepared: true }] } } } };
+    const sheet = normalizeSheet(old);
+    expect(sheet.spells.cantrips[0]).toEqual({ ...newSpell(), name: "Light" });
+    expect(sheet.spells.levels[1]).toMatchObject({ total: 4, remaining: 3 });
+    expect(sheet.spells.levels[1].list[0]).toMatchObject({ name: "Bless", prepared: true, v: false });
+    expect(sheet.spells.levels[9]).toEqual({ total: 0, remaining: 0, list: [] });
+    expect(normalizeSheet({}).spells.cantrips).toEqual([]);
+  });
+  it("save DC and attack bonus follow the spellcasting ability", () => {
+    const sheet = { ...createSheet(), abilities: { ...createSheet().abilities, wis: 16 }, spellcasting: { ability: "wis" } };
+    expect(spellSaveDc(sheet)).toBe(13);
+    expect(spellAttackBonus(sheet)).toBe(5);
+  });
+  it("both are null while no ability is chosen", () => {
+    expect(spellSaveDc(createSheet())).toBeNull();
+    expect(spellAttackBonus(createSheet())).toBeNull();
+  });
+});
+
+describe("spellRolls (magias spec CA11)", () => {
+  const caster = { ...createSheet(), level: 5, abilities: { ...createSheet().abilities, wis: 16 }, spellcasting: { ability: "wis" } };
+  const attackSpell = (over = {}) => ({ ...newSpell(), name: "Guiding Bolt", output: "attack", ability: "spell", attackType: "ranged", damage1: { dice: "4d6", type: "Radiant" }, ...over });
+  it("attack spell: d20 with proficiency + modifier and the damage line", () =>
+    expect(spellRolls(caster, attackSpell())).toEqual({ modifier: 6, damage: [{ expression: "4d6", type: "Radiant" }] }));
+  it("no attack type means no d20 (damage only)", () => expect(spellRolls(caster, attackSpell({ attackType: "" })).modifier).toBeUndefined());
+  it("add modifier goes on the first line only", () => {
+    const rolls = spellRolls(caster, attackSpell({ addModifier: true, damage2: { dice: "1d4", type: "Fire" } }));
+    expect(rolls.damage.map((l) => l.expression)).toEqual(["4d6+3", "1d4"]);
+  });
+  it("healing is a line typed with the given label", () =>
+    expect(spellRolls(caster, attackSpell({ attackType: "", damage1: { dice: "", type: "" }, healing: "1d8", addModifier: true }), "Healing").damage)
+      .toEqual([{ expression: "1d8+3", type: "Healing" }]));
+  it("invalid dice are dropped", () => expect(spellRolls(caster, attackSpell({ damage1: { dice: "oops", type: "" } })).damage).toEqual([]));
+  it("a sheet-output spell has nothing to roll", () => expect(spellRolls(caster, { ...attackSpell(), output: "sheet" })).toEqual({ damage: [] }));
+  it("uses the ability chosen on the spell instead of the sheet one", () =>
+    expect(spellRolls({ ...caster, abilities: { ...caster.abilities, int: 20 } }, attackSpell({ ability: "int" })).modifier).toBe(3 + 5));
+  it("spellDc follows the spell ability", () => expect(spellDc(caster, attackSpell())).toBe(8 + 3 + 3));
+});
+
+describe("spellPrint (spell card in the chat)", () => {
+  const caster = { ...createSheet(), level: 5, abilities: { ...createSheet().abilities, wis: 16 }, spellcasting: { ability: "wis" } };
+  const labels = { castingTime: "Casting Time", range: "Range", target: "Target", components: "Components", duration: "Duration", concentration: "Concentration", dc: "Save DC", cantrip: "Cantrip", ritual: "Ritual" };
+  const bane = { ...newSpell(), name: "Bane", school: "Enchantment", castingTime: "1 action", range: "30 feet", target: "Three creatures", v: true, s: true, m: true, materials: "A drop of blood", concentration: true, duration: "1 minute", description: "Text.", higherLevels: "More targets.", hasSave: true };
+  it("lists the relevant data in order, skipping empty ones", () => {
+    const card = spellPrint(caster, bane, 1, labels);
+    expect(card.name).toBe("Bane");
+    expect(card.source).toBe("Enchantment 1");
+    expect(card.details).toEqual([
+      { label: "Casting Time", value: "1 action" },
+      { label: "Range", value: "30 feet" },
+      { label: "Target", value: "Three creatures" },
+      { label: "Components", value: "V, S, M (A drop of blood)" },
+      { label: "Duration", value: "Concentration 1 minute" },
+    ]);
+    expect(card).toMatchObject({ description: "Text.", higher: "More targets.", footer: "Save DC: 14" });
+  });
+  it("cantrip and ritual show in the subtitle; empty fields give no detail rows", () => {
+    const card = spellPrint(caster, { ...newSpell(), name: "Light", school: "Evocation", ritual: true }, 0, labels);
+    expect(card.source).toBe("Evocation Cantrip · Ritual");
+    expect(card.details).toEqual([]);
+  });
+  it("no footer when the spell has no saving throw", () => expect(spellPrint(caster, { ...bane, hasSave: false }, 1, labels).footer).toBeUndefined());
+  it("no footer when there is no spellcasting ability", () => expect(spellPrint(createSheet(), bane, 1, labels).footer).toBeUndefined());
+});
+
+describe("spell slots by caster type (magias spec CA13-CA19)", () => {
+  const at = (type, level, extra = {}) => ({ ...createSheet(), level, spellcasting: { ability: "", type }, ...extra });
+  const slots = (type, level) => Object.fromEntries(Object.entries(spellSlots(at(type, level))).filter(([, n]) => n > 0));
+  it("new sheets are not casters", () => expect(createSheet().spellcasting.type).toBe(CasterType.NONE));
+  it("none has no automatic slots", () => expect(slots(CasterType.NONE, 10)).toEqual({}));
+  it.each([
+    [1, { 1: 2 }], [3, { 1: 4, 2: 2 }], [5, { 1: 4, 2: 3, 3: 2 }], [9, { 1: 4, 2: 3, 3: 3, 4: 3, 5: 1 }],
+    [17, { 1: 4, 2: 3, 3: 3, 4: 3, 5: 2, 6: 1, 7: 1, 8: 1, 9: 1 }], [20, { 1: 4, 2: 3, 3: 3, 4: 3, 5: 3, 6: 2, 7: 2, 8: 1, 9: 1 }],
+  ])("full caster level %i", (level, expected) => expect(slots(CasterType.FULL, level)).toEqual(expected));
+  it.each([[1, {}], [2, { 1: 2 }], [3, { 1: 3 }], [5, { 1: 4, 2: 2 }], [17, { 1: 4, 2: 3, 3: 3, 4: 3, 5: 1 }]])("half caster level %i", (level, expected) =>
+    expect(slots(CasterType.HALF, level)).toEqual(expected));
+  it.each([[1, {}], [2, {}], [3, { 1: 2 }], [4, { 1: 3 }], [7, { 1: 4, 2: 2 }], [19, { 1: 4, 2: 3, 3: 3, 4: 1 }]])("eldritch knight / arcane trickster level %i", (level, expected) => {
+    expect(slots(CasterType.ELDRITCH, level)).toEqual(expected);
+    expect(slots(CasterType.TRICKSTER, level)).toEqual(expected);
+  });
+  it.each([[1, { 1: 1 }], [2, { 1: 2 }], [3, { 2: 2 }], [5, { 3: 2 }], [11, { 5: 3 }], [17, { 5: 4 }]])("pact magic level %i", (level, expected) =>
+    expect(slots(CasterType.PACT, level)).toEqual(expected));
+  it("spellSlotTotal is automatic for casters and manual for none", () => {
+    const manual = at(CasterType.NONE, 5, { spells: { ...createSheet().spells, levels: { ...createSheet().spells.levels, 1: { total: 7, remaining: 0, list: [] } } } });
+    expect(spellSlotTotal(manual, 1)).toBe(7);
+    expect(spellSlotTotal(at(CasterType.FULL, 5), 1)).toBe(4);
+    expect(spellSlotTotal(at(CasterType.FULL, 5), 9)).toBe(0);
+  });
+  it("an old sheet without a type is normalized to none", () => expect(normalizeSheet({ spellcasting: { ability: "wis" } }).spellcasting).toEqual({ ability: "wis", type: "none" }));
+});
+
+describe("multiclass spell slots (magias spec CA20-CA24)", () => {
+  const cls = (caster, level) => ({ name: "", level, die: "d8", caster });
+  const multi = (mainType, mainLevel, extras) => ({ ...createSheet(), level: mainLevel, spellcasting: { ability: "", type: mainType }, extraClasses: extras });
+  const slots = (sheet) => Object.fromEntries(Object.entries(spellSlots(sheet)).filter(([, n]) => n > 0));
+  it("a single caster uses its own class level, not the total", () =>
+    expect(slots(multi(CasterType.HALF, 5, [cls(CasterType.NONE, 3)]))).toEqual({ 1: 4, 2: 2 }));
+  it("a non-caster main class with a caster extra uses the extra's level", () =>
+    expect(slots(multi(CasterType.NONE, 6, [cls(CasterType.FULL, 3)]))).toEqual({ 1: 4, 2: 2 }));
+  it("two full casters add their levels", () => expect(slots(multi(CasterType.FULL, 3, [cls(CasterType.FULL, 2)]))).toEqual({ 1: 4, 2: 3, 3: 2 }));
+  it("a half caster counts half of its level, rounded down", () => expect(slots(multi(CasterType.HALF, 4, [cls(CasterType.FULL, 3)]))).toEqual({ 1: 4, 2: 3, 3: 2 }));
+  it("a third caster counts a third, rounded down", () => expect(slots(multi(CasterType.TRICKSTER, 7, [cls(CasterType.FULL, 3)]))).toEqual({ 1: 4, 2: 3, 3: 2 }));
+  it("pact slots stay apart and are added to their spell level", () =>
+    expect(slots(multi(CasterType.PACT, 3, [cls(CasterType.FULL, 5)]))).toEqual({ 1: 4, 2: 5, 3: 2 }));
+  it("pact alone is just the pact slots", () => expect(slots(multi(CasterType.PACT, 5, [cls(CasterType.NONE, 2)]))).toEqual({ 3: 2 }));
+  it("slots are automatic when any class is a caster", () => {
+    expect(hasAutoSlots(multi(CasterType.NONE, 3, [cls(CasterType.HALF, 2)]))).toBe(true);
+    expect(hasAutoSlots(multi(CasterType.NONE, 3, [cls(CasterType.NONE, 2)]))).toBe(false);
+  });
+  it("an old extra class without caster is normalized to none", () =>
+    expect(normalizeSheet({ extraClasses: [{ name: "Fighter", level: 2, die: "d10" }] }).extraClasses[0].caster).toBe("none"));
+});
+
+describe("newSpell defaults", () => {
+  it("includes the description in the attack by default", () => expect(newSpell().includeDescription).toBe(true));
 });

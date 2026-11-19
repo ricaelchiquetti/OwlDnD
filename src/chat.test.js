@@ -199,3 +199,34 @@ describe("buildFeatureMessage (print a feature in the chat)", () => {
   it("caps a very long description so the room metadata does not balloon", () =>
     expect(buildFeatureMessage({ ...feature, description: "x".repeat(5000) }, meta).description).toHaveLength(2000));
 });
+
+describe("buildFeatureMessage extras (spell card)", () => {
+  const meta = { id: "m1", time: 1000, author: "Ana", authorId: "p1", role: "GM" };
+  const base = { character: "Peper", name: "Bane", source: "Enchantment 1", description: "Up to three creatures." };
+  it("carries details, higher levels and footer when given", () => {
+    const message = buildFeatureMessage({ ...base, details: [{ label: "Range", value: "30 feet" }], higher: "Another target.", footer: "Save DC: 13" }, meta);
+    expect(message).toMatchObject({ details: [{ label: "Range", value: "30 feet" }], higher: "Another target.", footer: "Save DC: 13" });
+  });
+  it("leaves them out when not given", () => expect(Object.keys(buildFeatureMessage(base, meta))).not.toContain("details"));
+  it("drops details without a value and caps their number", () => {
+    const details = Array.from({ length: 30 }, (_, i) => ({ label: `L${i}`, value: i === 0 ? " " : "x" }));
+    const out = buildFeatureMessage({ ...base, details }, meta).details;
+    expect(out.length).toBeLessThanOrEqual(12);
+    expect(out.find((d) => d.label === "L0")).toBeUndefined();
+  });
+});
+
+describe("buildSheetMessage with a card (attack + spell description in one message)", () => {
+  const meta = { id: "m1", time: 1000, author: "Ana", authorId: "p1", role: "GM" };
+  const card = { name: "Guiding Bolt", source: "Evocation 1", description: "A flash of light.", details: [{ label: "Range", value: "120 feet" }], higher: "More dice.", footer: "Save DC: 13" };
+  const spec = { character: "Peper", label: "Guiding Bolt", modifier: 6, damage: [{ expression: "4d6", type: "Radiant" }], card };
+  it("keeps the roll, the damage and the card together", () => {
+    const message = buildSheetMessage(spec, meta, () => 0);
+    expect(message.kind).toBe("sheet");
+    expect(message.check).toBeTruthy();
+    expect(message.damage).toHaveLength(1);
+    expect(message.card).toMatchObject({ name: "Guiding Bolt", description: "A flash of light.", details: [{ label: "Range", value: "120 feet" }], higher: "More dice.", footer: "Save DC: 13" });
+  });
+  it("has no card when none is given", () => expect(buildSheetMessage({ ...spec, card: undefined }, meta, () => 0).card).toBeUndefined());
+  it("caps long card text", () => expect(buildSheetMessage({ ...spec, card: { ...card, description: "x".repeat(5000) } }, meta, () => 0).card.description).toHaveLength(2000));
+});
